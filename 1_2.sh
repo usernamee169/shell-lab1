@@ -3,53 +3,78 @@
 #дата/время     : удалённые файлы
 #15.02.09T21:00 : file1 file2 file3
 
-
 #!/bin/bash
 
-# Версия для запуска в фоне
+# Проверка количества аргументов
 if [ $# -ne 3 ]; then
+    echo "Ошибка: неверное количество аргументов" >&2
     echo "Использование: $0 <директория> <суффикс> <интервал_в_секундах>" >&2
-    echo "Пример запуска: $0 /tmp .tmp 60 &" >&2
-    echo "Пример запуска: nohup $0 ~/downloads .temp 300 > /dev/null 2>&1 &" >&2
+    echo "Пример: $0 /tmp .tmp 60" >&2
     exit 1
 fi
 
-TARGET_DIR=$(realpath "$1")
+TARGET_DIR="$1"
 SUFFIX="$2"
 INTERVAL="$3"
-LOG_FILE="$HOME/tmp_cleaner_$(date +%Y%m%d_%H%M%S).log"
+LOG_FILE="/var/log/tmp_cleaner.log"
 
-# Проверки
-[ ! -d "$TARGET_DIR" ] && { echo "Директория не существует" >&2; exit 2; }
-! [[ "$INTERVAL" =~ ^[0-9]+$ ]] && { echo "Интервал должен быть числом" >&2; exit 3; }
+# Проверка существования директории
+if [ ! -d "$TARGET_DIR" ]; then
+    echo "Ошибка: директория '$TARGET_DIR' не существует" >&2
+    exit 2
+fi
 
-# Основная функция
-cleanup_loop() {
-    echo "Старт очистки $(date)" >> "$LOG_FILE"
-    echo "Директория: $TARGET_DIR" >> "$LOG_FILE"
-    echo "Суффикс: $SUFFIX" >> "$LOG_FILE"
-    echo "Интервал: ${INTERVAL}с" >> "$LOG_FILE"
+# Проверка что интервал - число
+if ! [[ "$INTERVAL" =~ ^[0-9]+$ ]] || [ "$INTERVAL" -le 0 ]; then
+    echo "Ошибка: интервал должен быть положительным числом (в секундах)" >&2
+    exit 3
+fi
+
+# Проверка/создание лог-файла
+if [ ! -f "$LOG_FILE" ]; then
+    sudo touch "$LOG_FILE" 2>/dev/null || {
+        LOG_FILE="$HOME/tmp_cleaner.log"
+        touch "$LOG_FILE"
+        echo "Внимание: создан локальный лог-файл $LOG_FILE" >&2
+    }
+fi
+
+echo "Запуск очистки временных файлов с суффиксом '$SUFFIX'"
+echo "Директория: $TARGET_DIR"
+echo "Интервал: $INTERVAL секунд"
+echo "Лог-файл: $LOG_FILE"
+echo "Для остановки нажмите Ctrl+C"
+echo "------------------------------------------------------"
+
+# Основной цикл очистки
+while true; do
+    # Получаем текущую дату и время в нужном формате
+    TIMESTAMP=$(date +"%y.%m.%dT%H:%M")
     
-    while true; do
-        TIMESTAMP=$(date +"%y.%m.%dT%H:%M")
-        FILES=$(find "$TARGET_DIR" -type f -name "*$SUFFIX" 2>/dev/null | xargs -r basename -a 2>/dev/null)
+    # Ищем и удаляем файлы, собираем список удаленных
+    DELETED_FILES=$(find "$TARGET_DIR" -type f -name "*$SUFFIX" 2>/dev/null)
+    
+    if [ -n "$DELETED_FILES" ]; then
+        # Удаляем файлы и получаем список удаленных
+        COUNT=0
+        DELETED_LIST=""
         
-        if [ -n "$FILES" ]; then
-            # Удаляем файлы
-            find "$TARGET_DIR" -type f -name "*$SUFFIX" -delete 2>/dev/null
-            echo "$TIMESTAMP : $FILES" >> "$LOG_FILE"
-        else
-            echo "$TIMESTAMP :" >> "$LOG_FILE"
-        fi
+        for file in $DELETED_FILES; do
+            if rm -f "$file" 2>/dev/null; then
+                DELETED_LIST="$DELETED_LIST $(basename "$file")"
+                COUNT=$((COUNT + 1))
+            fi
+        done
         
-        sleep "$INTERVAL"
-    done
-}
-
-# Запуск в фоне
-cleanup_loop &
-CLEANER_PID=$!
-
-echo "Очистка запущена с PID: $CLEANER_PID"
-echo "Лог: $LOG_FILE"
-echo "Для остановки выполните: kill $CLEANER_PID"
+        # Записываем в лог
+        echo "$TIMESTAMP :$DELETED_LIST" >> "$LOG_FILE"
+        
+        # Выводим информацию на экран
+        echo "[$TIMESTAMP] Удалено $COUNT файлов с суффиксом '$SUFFIX'"
+    else
+        echo "[$TIMESTAMP] Файлы с суффиксом '$SUFFIX' не найдены"
+    fi
+    
+    # Ждем указанный интервал
+    sleep "$INTERVAL"
+done
