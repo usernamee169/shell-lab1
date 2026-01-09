@@ -14,9 +14,10 @@ chmod +x 1_2.sh
 
 
 3. FizzBuzz со случайным числом
-Сохраните как task3.sh, сделайте исполняемым и запустите:
-chmod +x task3.sh
-./task3.sh
+nano 1_3.sh
+ctr o ctr x
+chmod +x 1_3.sh
+./1_3.sh
 
 
 4. Перевод имен подкаталогов в латиницу
