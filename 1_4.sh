@@ -4,38 +4,95 @@
 
 # Функция для транслитерации кириллицы в латиницу
 transliterate() {
-    echo "$1" | sed -e 's/а/a/g' -e 's/б/b/g' -e 's/в/v/g' -e 's/г/g/g' \
-                   -e 's/д/d/g' -e 's/е/e/g' -e 's/ё/yo/g' -e 's/ж/zh/g' \
-                   -e 's/з/z/g' -e 's/и/i/g' -e 's/й/y/g' -e 's/к/k/g' \
-                   -e 's/л/l/g' -e 's/м/m/g' -e 's/н/n/g' -e 's/о/o/g' \
-                   -e 's/п/p/g' -e 's/р/r/g' -e 's/с/s/g' -e 's/т/t/g' \
-                   -e 's/у/u/g' -e 's/ф/f/g' -e 's/х/h/g' -e 's/ц/ts/g' \
-                   -e 's/ч/ch/g' -e 's/ш/sh/g' -e 's/щ/sch/g' -e 's/ъ//g' \
-                   -e 's/ы/y/g' -e 's/ь//g' -e 's/э/e/g' -e 's/ю/yu/g' \
-                   -e 's/я/ya/g' \
-                   -e 's/А/A/g' -e 's/Б/B/g' -e 's/В/V/g' -e 's/Г/G/g' \
-                   -e 's/Д/D/g' -e 's/Е/E/g' -e 's/Ё/Yo/g' -e 's/Ж/Zh/g' \
-                   -e 's/З/Z/g' -e 's/И/I/g' -e 's/Й/Y/g' -e 's/К/K/g' \
-                   -e 's/Л/L/g' -e 's/М/M/g' -e 's/Н/N/g' -e 's/О/O/g' \
-                   -e 's/П/P/g' -e 's/Р/R/g' -e 's/С/S/g' -e 's/Т/T/g' \
-                   -e 's/У/U/g' -e 's/Ф/F/g' -e 's/Х/H/g' -e 's/Ц/Ts/g' \
-                   -e 's/Ч/Ch/g' -e 's/Ш/Sh/g' -e 's/Щ/Sch/g' -e 's/Ъ//g' \
-                   -e 's/Ы/Y/g' -e 's/Ь//g' -e 's/Э/E/g' -e 's/Ю/Yu/g' \
-                   -e 's/Я/Ya/g'
+    local input="$1"
+    
+    # Ассоциативный массив для транслитерации (кириллица → латиница)
+    declare -A translit_map=(
+        [а]="a" [б]="b" [в]="v" [г]="g" [д]="d" [е]="e" [ё]="yo" [ж]="zh"
+        [з]="z" [и]="i" [й]="y" [к]="k" [л]="l" [м]="m" [н]="n" [о]="o"
+        [п]="p" [р]="r" [с]="s" [т]="t" [у]="u" [ф]="f" [х]="h" [ц]="ts"
+        [ч]="ch" [ш]="sh" [щ]="sch" [ъ]="" [ы]="y" [ь]="" [э]="e" [ю]="yu"
+        [я]="ya"
+        # Заглавные буквы
+        [А]="A" [Б]="B" [В]="V" [Г]="G" [Д]="D" [Е]="E" [Ё]="Yo" [Ж]="Zh"
+        [З]="Z" [И]="I" [Й]="Y" [К]="K" [Л]="L" [М]="M" [Н]="N" [О]="O"
+        [П]="P" [Р]="R" [С]="S" [Т]="T" [У]="U" [Ф]="F" [Х]="H" [Ц]="Ts"
+        [Ч]="Ch" [Ш]="Sh" [Щ]="Sch" [Ъ]="" [Ы]="Y" [Ь]="" [Э]="E" [Ю]="Yu"
+        [Я]="Ya"
+    )
+    
+    local result=""
+    local char
+    
+    # Обрабатываем строку посимвольно
+    for ((i=0; i<${#input}; i++)); do
+        char="${input:$i:1}"
+        if [[ -n "${translit_map[$char]}" ]]; then
+            result+="${translit_map[$char]}"
+        else
+            # Если символ не кириллица, оставляем как есть
+            result+="$char"
+        fi
+    done
+    
+    echo "$result"
 }
 
-# Обрабатываем только подкаталоги (не включая текущий каталог)
-find . -maxdepth 1 -type d ! -path . | while read dir; do
-    if [ -d "$dir" ]; then
-        base_name=$(basename "$dir")
-        new_name=$(transliterate "$base_name")
-        
-        # Переименовываем только если имя изменилось
-        if [ "$base_name" != "$new_name" ]; then
-            echo "Переименовываем: '$base_name' -> '$new_name'"
-            mv "$dir" "$new_name"
-        fi
+# Основная программа
+main() {
+    echo "Транслитерация имен подкаталогов в текущем каталоге"
+    echo "Текущий каталог: $(pwd)"
+    echo "----------------------------------------"
+    
+    # Находим все подкаталоги (только непосредственно в текущем каталоге)
+    local dirs=($(find . -maxdepth 1 -type d ! -name "." | sed 's|^./||'))
+    
+    if [ ${#dirs[@]} -eq 0 ]; then
+        echo "Подкаталогов не найдено"
+        return 0
     fi
-done
+    
+    echo "Найдено подкаталогов: ${#dirs[@]}"
+    echo ""
+    
+    local count=0
+    local skipped=0
+    
+    # Обрабатываем каждый каталог
+    for dir in "${dirs[@]}"; do
+        # Транслитерируем имя
+        new_name=$(transliterate "$dir")
+        
+        # Если имя не изменилось, пропускаем
+        if [[ "$dir" == "$new_name" ]]; then
+            echo "Пропуск: '$dir' → не содержит кириллицы"
+            ((skipped++))
+            continue
+        fi
+        
+        # Проверяем, не существует ли уже каталог с таким именем
+        if [[ -e "$new_name" ]]; then
+            echo "Ошибка: '$dir' → '$new_name' уже существует, пропуск"
+            ((skipped++))
+            continue
+        fi
+        
+        # Переименовываем каталог
+        if mv -v "$dir" "$new_name" 2>/dev/null; then
+            echo "Переименован: '$dir' → '$new_name'"
+            ((count++))
+        else
+            echo "Ошибка переименования: '$dir' → '$new_name'"
+        fi
+    done
+    
+    echo ""
+    echo "========================================"
+    echo "Итого:"
+    echo "  Успешно переименовано: $count"
+    echo "  Пропущено: $skipped"
+    echo "  Всего обработано: ${#dirs[@]}"
+}
 
-echo "Готово! Все подкаталоги переведены в латиницу."
+# Запускаем основную программу
+main
