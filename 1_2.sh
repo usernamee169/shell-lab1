@@ -4,41 +4,52 @@
 #15.02.09T21:00 : file1 file2 file3
 
 
-
-
 #!/bin/bash
 
+# Версия для запуска в фоне
 if [ $# -ne 3 ]; then
-    echo "Использование: $0 <каталог> <суффикс> <интервал_в_секундах>"
+    echo "Использование: $0 <директория> <суффикс> <интервал_в_секундах>" >&2
+    echo "Пример запуска: $0 /tmp .tmp 60 &" >&2
+    echo "Пример запуска: nohup $0 ~/downloads .temp 300 > /dev/null 2>&1 &" >&2
     exit 1
 fi
 
-directory="$1"
-suffix="$2"
-interval="$3"
+TARGET_DIR=$(realpath "$1")
+SUFFIX="$2"
+INTERVAL="$3"
+LOG_FILE="$HOME/tmp_cleaner_$(date +%Y%m%d_%H%M%S).log"
 
-if [ ! -d "$directory" ]; then
-    echo "Ошибка: каталог '$directory' не существует"
-    exit 1
-fi
+# Проверки
+[ ! -d "$TARGET_DIR" ] && { echo "Директория не существует" >&2; exit 2; }
+! [[ "$INTERVAL" =~ ^[0-9]+$ ]] && { echo "Интервал должен быть числом" >&2; exit 3; }
 
-while true; do
-    # Находим файлы с указанным суффиксом
-    files_to_delete=$(find "$directory" -type f -name "*$suffix")
+# Основная функция
+cleanup_loop() {
+    echo "Старт очистки $(date)" >> "$LOG_FILE"
+    echo "Директория: $TARGET_DIR" >> "$LOG_FILE"
+    echo "Суффикс: $SUFFIX" >> "$LOG_FILE"
+    echo "Интервал: ${INTERVAL}с" >> "$LOG_FILE"
     
-    if [ -n "$files_to_delete" ]; then
-        # Форматируем дату/время
-        timestamp=$(date +"%y.%m.%dT%H:%M")
+    while true; do
+        TIMESTAMP=$(date +"%y.%m.%dT%H:%M")
+        FILES=$(find "$TARGET_DIR" -type f -name "*$SUFFIX" 2>/dev/null | xargs -r basename -a 2>/dev/null)
         
-        # Удаляем файлы и записываем в лог
-        echo "$timestamp : $files_to_delete" >> deletion.log
-        rm -f $files_to_delete
+        if [ -n "$FILES" ]; then
+            # Удаляем файлы
+            find "$TARGET_DIR" -type f -name "*$SUFFIX" -delete 2>/dev/null
+            echo "$TIMESTAMP : $FILES" >> "$LOG_FILE"
+        else
+            echo "$TIMESTAMP :" >> "$LOG_FILE"
+        fi
         
-        echo "$timestamp : удалены файлы: $files_to_delete"
-    else
-        timestamp=$(date +"%y.%m.%dT%H:%M")
-        echo "$timestamp : файлы для удаления не найдены"
-    fi
-    
-    sleep "$interval"
-done
+        sleep "$INTERVAL"
+    done
+}
+
+# Запуск в фоне
+cleanup_loop &
+CLEANER_PID=$!
+
+echo "Очистка запущена с PID: $CLEANER_PID"
+echo "Лог: $LOG_FILE"
+echo "Для остановки выполните: kill $CLEANER_PID"
