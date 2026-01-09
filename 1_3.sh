@@ -3,22 +3,22 @@
 # кратных пяти — слово «Buzz». Если число кратно и 3, и 5, то программа должна выводить слово «FizzBuzz».
 # Язык программирования — Unix Shell.
 
-
 #!/bin/bash
 
-# Генерируем случайное число от 100 до 200
-random_num=$(( RANDOM % 101 + 100 ))
+# Генерируем случайное число в диапазоне [100, 200]
+# $RANDOM дает число от 0 до 32767, приводим к нужному диапазону
+RAND_NUM=$((100 + RANDOM % 101))  # 101 = 200-100+1
 
-echo "Случайное число: $random_num"
-echo "===================="
+echo "Случайное число: $RAND_NUM"
+echo "Вывод чисел от 1 до $RAND_NUM:"
 
-for (( i=1; i<=$random_num; i++ ))
-do
-    if [ $((i % 3)) -eq 0 ] && [ $((i % 5)) -eq 0 ]; then
+# Основной цикл
+for ((i=1; i<=RAND_NUM; i++)); do
+    if (( i % 3 == 0 and i % 5 == 0)); then
         echo "FizzBuzz"
-    elif [ $((i % 3)) -eq 0 ]; then
+    elif (( i % 3 == 0 )); then
         echo "Fizz"
-    elif [ $((i % 5)) -eq 0 ]; then
+    elif (( i % 5 == 0 )); then
         echo "Buzz"
     else
         echo "$i"
