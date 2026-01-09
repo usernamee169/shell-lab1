@@ -1,7 +1,8 @@
 1. Подсчет файлов и вывод по убыванию длины
 Сохраните как task1.sh, сделайте исполняемым и запустите:
-chmod +x task1.sh
-./task1.sh /path/to/directory
+chmod +x 1_1.sh
+./1_1.sh /path/to/directory
+например /home/user/documents
 
 
 
