@@ -1,15 +1,16 @@
 1. Подсчет файлов и вывод по убыванию длины
-Сохраните как task1.sh, сделайте исполняемым и запустите:
+nano 1_1.sh
+ctr o ctr x
 chmod +x 1_1.sh
 ./1_1.sh /path/to/directory
 например /home/user/documents
 
 
-
 2. Удаление временных файлов с логом
-Сохраните как task2.sh, сделайте исполняемым и запустите:
-chmod +x task2.sh
-./task2.sh /path/to/directory .tmp 60
+nano 1_2.sh
+ctr o ctr x
+chmod +x 1_2.sh
+./1_2.sh /tmp .tmp 60
 
 
 3. FizzBuzz со случайным числом
