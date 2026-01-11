@@ -1,34 +1,21 @@
-1. Подсчет файлов и вывод по убыванию длины
-nano 1_1.sh
-ctr o ctr x
+1. 
 chmod +x 1_1.sh
-./1_1.sh /path/to/directory
-например /home/user/documents
+./1_1.sh /home/ss/documents
 
 
-2. Удаление временных файлов с логом
-nano 1_2.sh
-ctr o ctr x
-chmod +x 1_2.sh
+2.chmod +x 1_2.sh
 ./1_2.sh /tmp .tmp 60
 
 
-3. FizzBuzz со случайным числом
-nano 1_3.sh
-ctr o ctr x
-chmod +x 1_3.sh
+3. chmod +x 1_3.sh
 ./1_3.sh
 
 
-4. Перевод имен подкаталогов в латиницу
-nano 1_4.sh
-ctr o ctr x
-chmod +x 1_4.sh
+4. chmod +x 1_4.sh
 cd /путь/к/каталогу
 ./1_4.sh
 
 
-5. Замена имен файлов на их MD5-сумму
-Сохраните как task5.sh, сделайте исполняемым и запустите:
+5. 
 chmod +x task5.sh
 ./task5.sh
