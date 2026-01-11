@@ -1,6 +1,6 @@
 1. 
 chmod +x 1_1.sh
-./1_1.sh /home/ss/documents
+./1_1.sh /home/ss/Документы
 
 
 2.chmod +x 1_2.sh
