@@ -4,7 +4,7 @@ chmod +x 1_1.sh
 
 
 2.chmod +x 1_2.sh
-./1_2.sh /tmp .tmp 60
+./1_2.sh путь в кавычках .tmp 60
 
 
 3. chmod +x 1_3.sh
