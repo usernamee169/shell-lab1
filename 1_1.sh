@@ -8,9 +8,9 @@
 [ $# -ne 1 ] && { echo "Использование: $0 <директория>" >&2; exit 1; }
 [ ! -d "$1" ] && { echo "Каталог '$1' не существует" >&2; exit 2; }
 
-find "$1" -type f -printf "%s\t%p\n" 2>/dev/null | sort -rn | awk -F'\t' '{
-    printf "%-10s %s\n", $1 " байт", $2
+find "$1" -type f -printf "%s\t%p\n" | sort -rn | awk -F'\t' '{
+    printf "%s %s\n", $1 " байт", $2
 }'
 
-echo "---"
-echo "Всего файлов: $(find "$1" -type f 2>/dev/null | wc -l)"
+echo " "
+echo "Всего файлов: $(find "$1" -type f | wc -l)"
