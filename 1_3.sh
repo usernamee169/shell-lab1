@@ -14,7 +14,7 @@ echo "Вывод чисел от 1 до $RAND_NUM:"
 
 # Основной цикл
 for ((i=1; i<=RAND_NUM; i++)); do
-    if (( i % 3 == 0 and i % 5 == 0)); then
+    if (( i % 3 == 0 && i % 5 == 0)); then
         echo "FizzBuzz"
     elif (( i % 3 == 0 )); then
         echo "Fizz"
