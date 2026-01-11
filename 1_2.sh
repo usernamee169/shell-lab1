@@ -4,6 +4,7 @@
 #15.02.09T21:00 : file1 file2 file3
 
 
+
 #!/bin/bash
 
 # Проверка количества аргументов
@@ -51,7 +52,9 @@ while true; do
     TIMESTAMP=$(date +"%y.%m.%dT%H:%M")
     
     # Ищем и удаляем файлы, собираем список удаленных
-    DELETED_FILES=$(find "$TARGET_DIR" -type f -name "*$SUFFIX" 2>/dev/null)
+    # Переходим в целевую директорию, чтобы работать с относительными путями
+    cd "$TARGET_DIR"
+    DELETED_FILES=$(find . -type f -name "*$SUFFIX" 2>/dev/null)
     
     if [ -n "$DELETED_FILES" ]; then
         # Удаляем файлы и получаем список удаленных
@@ -60,10 +63,15 @@ while true; do
         
         for file in $DELETED_FILES; do
             if rm -f "$file" 2>/dev/null; then
-                DELETED_LIST="$DELETED_LIST $(basename "$file")"
+                # Убираем начальную ./ если есть
+                clean_file="${file#./}"
+                DELETED_LIST="$DELETED_LIST $clean_file"
                 COUNT=$((COUNT + 1))
             fi
         done
+        
+        # Возвращаемся в исходную директорию
+        cd - > /dev/null
         
         # Записываем в лог
         echo "$TIMESTAMP :$DELETED_LIST" >> "$LOG_FILE"
@@ -71,6 +79,7 @@ while true; do
         # Выводим информацию на экран
         echo "[$TIMESTAMP] Удалено $COUNT файлов с суффиксом '$SUFFIX'"
     else
+        cd - > /dev/null
         echo "[$TIMESTAMP] Файлы с суффиксом '$SUFFIX' не найдены"
     fi
     
