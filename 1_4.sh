@@ -1,5 +1,7 @@
 #4. На языке unix shell написать программу, которая переводит имена подкаталогов текущего каталога в латиницу.
 
+
+
 #!/bin/bash
 
 # Функция для транслитерации кириллицы в латиницу
@@ -44,45 +46,43 @@ main() {
     echo "Текущий каталог: $(pwd)"
     echo "----------------------------------------"
     
-    # Находим все подкаталоги (только непосредственно в текущем каталоге)
-    local dirs=($(find . -maxdepth 1 -type d ! -name "." | sed 's|^./||'))
-    
-    if [ ${#dirs[@]} -eq 0 ]; then
-        echo "Подкаталогов не найдено"
-        return 0
-    fi
-    
-    echo "Найдено подкаталогов: ${#dirs[@]}"
-    echo ""
-    
+    # Используем безопасный способ получения списка каталогов
     local count=0
     local skipped=0
+    local processed=0
     
-    # Обрабатываем каждый каталог
-    for dir in "${dirs[@]}"; do
+    # Обрабатываем каждый каталог напрямую
+    for dir in */; do
+        # Пропускаем если это не каталог или шаблон не расширился
+        [[ -d "$dir" ]] || continue
+        
+        # Убираем завершающий слеш
+        clean_dir="${dir%/}"
+        ((processed++))
+        
         # Транслитерируем имя
-        new_name=$(transliterate "$dir")
+        new_name=$(transliterate "$clean_dir")
         
         # Если имя не изменилось, пропускаем
-        if [[ "$dir" == "$new_name" ]]; then
-            echo "Пропуск: '$dir' → не содержит кириллицы"
+        if [[ "$clean_dir" == "$new_name" ]]; then
+            echo "Пропуск: '$clean_dir' → не содержит кириллицы"
             ((skipped++))
             continue
         fi
         
         # Проверяем, не существует ли уже каталог с таким именем
         if [[ -e "$new_name" ]]; then
-            echo "Ошибка: '$dir' → '$new_name' уже существует, пропуск"
+            echo "Ошибка: '$clean_dir' → '$new_name' уже существует, пропуск"
             ((skipped++))
             continue
         fi
         
         # Переименовываем каталог
-        if mv -v "$dir" "$new_name" 2>/dev/null; then
-            echo "Переименован: '$dir' → '$new_name'"
+        if mv -v "$clean_dir" "$new_name" 2>/dev/null; then
+            echo "Переименован: '$clean_dir' → '$new_name'"
             ((count++))
         else
-            echo "Ошибка переименования: '$dir' → '$new_name'"
+            echo "Ошибка переименования: '$clean_dir' → '$new_name'"
         fi
     done
     
@@ -91,7 +91,7 @@ main() {
     echo "Итого:"
     echo "  Успешно переименовано: $count"
     echo "  Пропущено: $skipped"
-    echo "  Всего обработано: ${#dirs[@]}"
+    echo "  Всего обработано: $processed"
 }
 
 # Запускаем основную программу
