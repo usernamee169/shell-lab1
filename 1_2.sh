@@ -3,6 +3,7 @@
 #дата/время     : удалённые файлы
 #15.02.09T21:00 : file1 file2 file3
 
+
 #!/bin/bash
 
 # Проверка количества аргументов
@@ -16,7 +17,8 @@ fi
 TARGET_DIR="$1"
 SUFFIX="$2"
 INTERVAL="$3"
-LOG_FILE="/var/log/tmp_cleaner.log"
+# Лог-файл в текущей директории (откуда запускается скрипт)
+LOG_FILE="./tmp_cleaner.log"
 
 # Проверка существования директории
 if [ ! -d "$TARGET_DIR" ]; then
@@ -30,13 +32,10 @@ if ! [[ "$INTERVAL" =~ ^[0-9]+$ ]] || [ "$INTERVAL" -le 0 ]; then
     exit 3
 fi
 
-# Проверка/создание лог-файла
+# Проверка/создание лог-файла в текущей директории
 if [ ! -f "$LOG_FILE" ]; then
-    sudo touch "$LOG_FILE" 2>/dev/null || {
-        LOG_FILE="$HOME/tmp_cleaner.log"
-        touch "$LOG_FILE"
-        echo "Внимание: создан локальный лог-файл $LOG_FILE" >&2
-    }
+    touch "$LOG_FILE"
+    echo "Создан лог-файл в текущей директории: $LOG_FILE" >&2
 fi
 
 echo "Запуск очистки временных файлов с суффиксом '$SUFFIX'"
