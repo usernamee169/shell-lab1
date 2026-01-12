@@ -4,10 +4,8 @@
 
 #!/bin/bash
 
+
 translate() {
-    local input="$1"
-    
-    #массив для переода
     declare -A translit_map=(
         [а]="a" [б]="b" [в]="v" [г]="g" [д]="d" [е]="e" [ё]="yo" [ж]="zh"
         [з]="z" [и]="i" [й]="y" [к]="k" [л]="l" [м]="m" [н]="n" [о]="o"
@@ -25,21 +23,17 @@ translate() {
     local result=""
     local char
     
-    # Обрабатываем строку посимвольно
-    for ((i=0; i<${#input}; i++)); do
-        char="${input:$i:1}"
+    for ((i=0; i<${#1}; i++)); do
+        char="${1:$i:1}" 
         if [[ -n "${translit_map[$char]}" ]]; then
             result+="${translit_map[$char]}"
         else
-            # Если символ не кириллица, оставляем как есть
             result+="$char"
         fi
     done
     
     echo "$result"
 }
-
-
 
 
 
