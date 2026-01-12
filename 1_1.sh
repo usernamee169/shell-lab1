@@ -5,10 +5,14 @@
 
 #!/bin/bash
 
-[ $# -ne 1 ] && { echo "Передайте один аргумент" >&2; exit 1; }
-[ ! -d "$1" ] && { echo "Каталог '$1' не существует" >&2; exit 1; }
+if [ $# -ne 1 ] || [ ! -d "$1" ]; then
+    echo "Передан либо не 1 аргумент либо это не каталог"
+    exit 1
+fi
 
-find "$1" -type f -printf "%s байт\t%p\n" | sort -rn
+find "$1" -type f -exec basename {} \; | awk '{print length($0), $0}' | sort -rn | cut -d' ' -f2-
 
+
+file_count=$(find "$1" -type f | wc -l)
 echo " "
-echo "Всего файлов: $(find "$1" -type f | wc -l)"
+echo "Всего файлов: $file_count"
