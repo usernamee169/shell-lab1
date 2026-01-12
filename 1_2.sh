@@ -60,7 +60,7 @@ while true; do
         
         for file in $DELETED_FILES; do
             if rm -f "$file"; then
-                DELETED_LIST="$DELETED_LIST $clean_file"
+                DELETED_LIST="$DELETED_LIST $file"
                 COUNT=$((COUNT + 1))
             fi
         done
